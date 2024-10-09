@@ -6,5 +6,4 @@ button.onclick = ()=>{
     if(conf){
         heading.innerHTML = 'Hey'
     }
-
 }
