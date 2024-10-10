@@ -3,8 +3,8 @@ const app = express();
 const path = require("path");
 const bcrypt = require("bcrypt");
 const userModel = require("./models/user");
+const postModel = require("./models/post");
 const jwt = require("jsonwebtoken");
-const alert = require('alert');
 const cookieParser = require("cookie-parser");
 
 app.set('view engine','ejs');
@@ -21,12 +21,14 @@ app.get("/login",(req,res)=>{
     res.render("login");
 })
 
-app.get("/profile",(req,res)=>{
-    res.render("profile");
+app.get("/profile",isLoggedIn,async(req,res)=>{
+    const email = req.data.email;    
+    let data = await userModel.findOne({email});
+    res.render("profile",{name:data.username});
 })
 
 app.post("/create",async(req,res)=>{
-    const {username,email,password} = req.body;
+    const {username,email,password,age} = req.body;
     const user = await userModel.findOne({email});
     if(user){
         res.send("Something went wrong");
@@ -38,8 +40,9 @@ app.post("/create",async(req,res)=>{
                     username,
                     email,
                     password : hash,
+                    age
                 })
-                let token = jwt.sign(email,"secret");
+                let token = jwt.sign({email:email,id:user._id},"secret");
                 res.cookie('token',token);
                 res.redirect("/profile");
             })
@@ -57,7 +60,7 @@ app.post("/login",async(req,res)=>{
     else{
         bcrypt.compare(password,data.password,(err,result)=>{
             if(result){
-                let token = jwt.sign(email,"secret");
+                let token = jwt.sign({email:email,id:data._id},"secret");
                 res.cookie('token',token);
                 res.redirect("/profile");
             }
@@ -72,5 +75,13 @@ app.get("/logout",(req,res)=>{
     res.cookie('token', "");
     res.redirect("/");
 })
+
+function isLoggedIn(req,res,next){
+    if(req.cookies.token === "") return res.send("You need to login")
+    jwt.verify(req.cookies.token,"secret",(err,result)=>{
+        req.data = result; 
+    })
+    next();
+}
 
 app.listen(3000);
