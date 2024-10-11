@@ -6,6 +6,7 @@ const userModel = require("./models/user");
 const postModel = require("./models/post");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const { log } = require("console");
 
 app.set('view engine','ejs');
 app.use(express.json());
@@ -23,8 +24,10 @@ app.get("/login",(req,res)=>{
 
 app.get("/profile",isLoggedIn,async(req,res)=>{
     const email = req.data.email;    
-    let data = await userModel.findOne({email});
-    res.render("profile",{name:data.username});
+    let user = await userModel.findOne({email}).populate("posts");
+    console.log(user);
+    
+    res.render("profile",{user:user});
 })
 
 app.post("/create",async(req,res)=>{
@@ -69,6 +72,18 @@ app.post("/login",async(req,res)=>{
             }
         })
     }
+})
+
+app.post("/post",isLoggedIn,async(req,res)=>{
+    const {content} = req.body;
+    const user = await userModel.findOne({email:req.data.email});
+    const post = await postModel.create({
+        user : user._id,
+        content,
+    })
+    user.posts.push(post._id)
+    await user.save()
+    res.redirect("/profile");
 })
 
 app.get("/logout",(req,res)=>{

@@ -6,11 +6,39 @@
     <title>Profile Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white shadow-lg rounded-lg p-8 max-w-sm text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">Welcome <%= name%></h1>
-        <p class="text-gray-600 mb-6">This is the profile page.</p>
-        <a class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-full transition duration-300" href="/logout">Logout</a>
+<body class="bg-zinc-950  h-screen">
+    <div class="w-full flex justify-between pt-4 pr-2">
+        <h1 class="text-3xl px-3 py-2 font-bold text-white "> <span class="text-zinc-500">Welcome </span> <%= user.username%></h1>
+        <a class="text-white px-3 py-2 mb-4 bg-blue-500 rounded-md " href="/logout">Logout</a>
+    </div>
+    <div class="w-full max-w-md p-10">
+        <h1 class="text-2xl text-gray-400 mb-5">Write your posts here</h1>
+        <form action="/post" method="post">
+            <div class="ml-3 mb-4">
+                <textarea class="w-full resize-none outline-none px-4 py-3 bg-transparent border-2 border-gray-300 text-gray-700 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md transition duration-200 ease-in-out" 
+                type="text" name="content" placeholder="What's in your mind?" required></textarea>
+            </div>
+            <div class="ml-3 mb-4">
+                <button type="submit" class="w-full px-4 py-3 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition duration-200 ease-in-out">Create Post</button>
+            </div>
+        </form>
+    </div>
+        <p class=" px-10 mt-2 inline-block text-2xl text-gray-400 mb-6">Your posts</p>
+    <div class="posts ml-5 pr-5 gap-3 flex">
+        <%if(user.posts.length > 0){  %>
+            <% user.posts.forEach((post)=>{ %>
+                <div class="post w-1/3 bg-zinc-800 border-2 px-3 py-2 rounded-[5px]">
+                    <h3 class="p-2 text-blue-500">@<%= user.username%></h3>
+                    <h4 class="p-1 text-white text-l tracking-tighter"><%= user.content%></h4>
+                    <div class="btns text-blue-600 flex justify-between px-5 mt-2">
+                        <a class="" href="">Like</a>
+                        <a  href="">Edit</a>
+                    </div>
+                </div>
+            <%})%>
+        <% }else{%>
+            <h3 class="px-10 text-l text-white">No posts yet</h3>
+        <% }%>
     </div>
 </body>
 </html>
