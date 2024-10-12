@@ -22,12 +22,30 @@ app.get("/login",(req,res)=>{
     res.render("login");
 })
 
-app.get("/profile",isLoggedIn,async(req,res)=>{
-    const email = req.data.email;    
+app.get("/like/:id",isLoggedIn,async(req,res)=>{
+    let post = await postModel.findOne({_id:req.params.id});
+    if(post.likes.indexOf(req.data.id) === -1){
+        post.likes.push(req.data.id);
+    }else{
+        post.likes.splice(post.likes.indexOf(req.data.id));
+    }
+
+    await post.save();
+    res.redirect("/profile");
+})
+
+app.get("/profile", isLoggedIn, async(req,res)=>{
+    const email = req.data.email;  
     let user = await userModel.findOne({email}).populate("posts");
-    console.log(user);
     res.render("profile",{user:user});
 })
+
+app.get("/edit/:id", isLoggedIn, async(req,res)=>{
+    const email = req.data.email;  
+    let post = await postModel.findOne({_id:req.params.id});
+    res.render("edit",{post});
+})
+
 
 app.post("/create",async(req,res)=>{
     const {username,email,password,age} = req.body;
@@ -85,13 +103,18 @@ app.post("/post",isLoggedIn,async(req,res)=>{
     res.redirect("/profile");
 })
 
+app.post("/update/:id",isLoggedIn,async(req,res)=>{
+    await postModel.findOneAndUpdate({_id:req.params.id},{content:req.body.content})
+    res.redirect("/profile");
+})
+
 app.get("/logout",(req,res)=>{
     res.cookie('token', "");
     res.redirect("/");
 })
 
 function isLoggedIn(req,res,next){
-    if(req.cookies.token === "") return res.send("You need to login")
+    if(req.cookies.token === "") return res.redirect("/");
     jwt.verify(req.cookies.token,"secret",(err,result)=>{
         req.data = result; 
     })
